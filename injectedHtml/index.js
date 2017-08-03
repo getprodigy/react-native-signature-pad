@@ -7,6 +7,7 @@ var content = script =>
     canvas
     {
       position:absolute;transform:translateZ(0);
+      border:none;
       /* In case the React Transformation is not performant, we'll fall back to this one
 
       transform-origin:left top;

@@ -17,6 +17,8 @@ import injectedExecuteNativeFunction from './injectedJavaScript/executeNativeFun
 class SignaturePad extends Component {
 
   static propTypes = {
+    defaultHeight: PropTypes.number,
+    defaultWidth: PropTypes.number,
     onChange: PropTypes.func,
     onError: PropTypes.func,
     style: View.propTypes.style,
@@ -40,9 +42,22 @@ class SignaturePad extends Component {
     var injectedJavaScript = injectedExecuteNativeFunction
       + injectedErrorHandler
       + injectedSignaturePad
-      + injectedApplication(props.penColor, backgroundColor, props.dataURL);
+      + injectedApplication(props.penColor, backgroundColor, props.dataURL, props.defaultHeight, props.defaultWidth);
     var html = htmlContent(injectedJavaScript);
     this.source = {html}; //We don't use WebView's injectedJavaScript because on Android, the WebView re-injects the JavaScript upon every url change. Given that we use url changes to communicate signature changes to the React Native app, the JS is re-injected every time a stroke is drawn.
+  }
+
+  resetImage() {
+    const {backgroundColor} = StyleSheet.flatten(this.props.style);
+    var injectedJavaScript = injectedExecuteNativeFunction
+      + injectedErrorHandler
+      + injectedSignaturePad
+      + injectedApplication(this.props.penColor, backgroundColor, null);
+    var html = htmlContent(injectedJavaScript);
+    this.source = {html};
+    this.setState({
+      key: Math.random(),
+    });
   }
 
   _onNavigationChange = (args) => {
@@ -107,6 +122,12 @@ class SignaturePad extends Component {
     this.setState({base64DataUrl});
   };
 
+  _bridged_onSave = ({ image }) => {
+    if (this.props.onSaveEvent) {
+      this.props.onSaveEvent({ image });
+    }
+  };
+
   _renderError = (args) => {
     this.props.onError({details: args});
   };
@@ -115,15 +136,26 @@ class SignaturePad extends Component {
 
   };
 
+  saveImage = () => {
+    if (this.webView) {
+      this.webView.postMessage('message');
+    }
+  };
+
+
   render = () => {
     return (
-        <WebView automaticallyAdjustContentInsets={false}
-                 onNavigationStateChange={this._onNavigationChange}
-                 renderError={this._renderError}
-                 renderLoading={this._renderLoading}
-                 source={this.source}
-                 javaScriptEnabled={true}
-                 style={this.props.style}/>
+      <WebView automaticallyAdjustContentInsets={false}
+               onNavigationStateChange={this._onNavigationChange}
+               renderError={this._renderError}
+               renderLoading={this._renderLoading}
+               source={this.source}
+               scrollEnabled={false}
+               javaScriptEnabled={true}
+               style={this.props.style}
+               ref={(ref) => { this.webView = ref; }}
+               key={this.state.key}
+      />
     )
   };
 }
