@@ -22,7 +22,6 @@ class SignaturePad extends Component {
     defaultWidth: PropTypes.number,
     onChange: PropTypes.func,
     onError: PropTypes.func,
-    style: View.propTypes.style,
     penColor: PropTypes.string,
     dataURL: PropTypes.string,
   };
